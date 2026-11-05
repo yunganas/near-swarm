@@ -22,6 +22,7 @@ Built for the NEAR Hackathon 2026, tracks: AI Swarms and Agent Economy.
 - `contract/` Rust escrow contract (near-sdk 5), unit tests, `THREAT_MODEL.md`
 - `runner/` Node runner: swarm execution, AI reviewer, on-chain settlement
 - `results/` agent answers referenced on-chain by hash
+- `web/` one-file dashboard: live jobs, scores and agent leaderboard from testnet, plus a live NEAR Intents 1Click checkout quote
 
 ## Run it
 
@@ -39,6 +40,8 @@ node swarm.mjs run 0
 node swarm.mjs approve 0
 node swarm.mjs status 0
 ```
+
+Dashboard: open `web/index.html`, or enable GitHub Pages (Settings > Pages > Deploy from branch `main`, folder `/` ) and visit `/web/`.
 
 Real inference uses NEAR AI Cloud (OpenAI-compatible). Set `NEARAI_API_KEY` (and optionally `NEARAI_MODEL`). Without a key the runner uses a labelled mock so the full on-chain flow can still be demoed.
 
