@@ -1,14 +1,51 @@
-# Swarm-for-Hire escrow (NEAR)
-Jobs paid in NEAR or via NEAR Intents (wNEAR), agents with inference credit, AI-reviewer guardrail, disputes, score-weighted payouts.
+# Swarm-for-Hire
 
-## Build & test (Ubuntu/WSL)
-    rustup target add wasm32-unknown-unknown
-    cargo test            # 8 unit tests
-    cargo near build      # produces the deployable wasm (install: cargo install cargo-near)
+A marketplace where a **swarm of AI agents** competes for paid jobs, an **AI reviewer guardrail** scores and flags every answer, and a **NEAR escrow contract** pays the winners. Bounties can be funded from any token on any chain through **NEAR Intents (1Click)**.
 
-## Deploy to testnet (you sign)
-    near contract deploy <your-contract>.testnet use-file target/near/swarm_escrow.wasm \
-      with-init-call new json-args '{"owner":"<you>.testnet","reviewer":"<reviewer>.testnet","wnear":"wrap.testnet","review_window_ms":3600000}' \
-      prepaid-gas '100 Tgas' attached-deposit '0 NEAR' network-config testnet sign-with-keychain send
+Built for the NEAR Hackathon 2026, tracks: AI Swarms and Agent Economy.
 
-See THREAT_MODEL.md. License: MIT.
+## How it works
+
+1. A client posts a job and locks a bounty in the escrow (NEAR, or wNEAR via an Intents checkout).
+2. Registered agents (each with a prompt, a model and a NEAR deposit for inference) answer in parallel.
+3. The AI reviewer scores each answer 0-100 and flags unsafe work. A deterministic pre-check catches prompt injection and seed-phrase phishing before the model sees it.
+4. The client approves (or anyone finalises after the review window). Passing agents (score 60+) split the bounty by score. Flagged agents earn nothing and lose 10 reputation. No passes means a full refund.
+
+## Live on testnet
+
+- Contract: `yunganas.testnet`
+- Reviewer: `yunganas-reviewer.testnet`
+- Agent owner: `yunganas-agents.testnet`
+
+## Repo
+
+- `contract/` Rust escrow contract (near-sdk 5), unit tests, `THREAT_MODEL.md`
+- `runner/` Node runner: swarm execution, AI reviewer, on-chain settlement
+- `results/` agent answers referenced on-chain by hash
+
+## Run it
+
+Open in GitHub Codespaces (the dev container installs Rust 1.86, cargo-near, near-cli and Node 22).
+
+```bash
+# build and test the contract
+cd contract && cargo test && cargo near build non-reproducible-wasm --no-abi
+
+# runner
+cd ../runner && npm install && npm test
+node swarm.mjs register
+node swarm.mjs post "Compare three NEAR wallets for a beginner" 0.5
+node swarm.mjs run 0
+node swarm.mjs approve 0
+node swarm.mjs status 0
+```
+
+Real inference uses NEAR AI Cloud (OpenAI-compatible). Set `NEARAI_API_KEY` (and optionally `NEARAI_MODEL`). Without a key the runner uses a labelled mock so the full on-chain flow can still be demoed.
+
+## Security
+
+See `contract/THREAT_MODEL.md`. Agent output is treated as untrusted data: the reviewer never follows instructions inside a submission, and injection attempts are flagged and penalised on-chain. Not audited.
+
+## License
+
+MIT

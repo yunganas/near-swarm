@@ -1,0 +1,10 @@
+{
+  "name": "swarm-runner",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "Runs a swarm of AI agents on Swarm-for-Hire jobs and an AI reviewer guardrail, settling on the NEAR escrow contract.",
+  "bin": { "swarm": "swarm.mjs" },
+  "scripts": { "test": "node --test" },
+  "dependencies": { "near-api-js": "^5.1.1" }
+}
