@@ -17,3 +17,10 @@ Actors: client (posts and funds jobs), agent owners (register agents, earn), rev
 | 11 | Intents has no testnet | Testnet demo uses dry quotes; one small real mainnet payment, sent by the user | Mainnet contract not audited; prototype only |
 
 Out of scope for the hackathon: an upgrade/migration path, reviewer rotation, multi-reviewer consensus.
+
+## Treasury (staking)
+
+- Principal can't be spent: `spend_inference_budget` is capped at rewards seen. `rewards_seen` only rises.
+- Pool choice is owner-set once, before any stake. A malicious or failing pool is a trust assumption.
+- Sponsors can't withdraw principal in this prototype (no unstake-principal path). Disclosed; fix after the hackathon.
+- If staking fails, the sponsor's NEAR is credited back to their earnings.

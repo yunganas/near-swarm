@@ -15,6 +15,8 @@ const REVIEWER = process.env.SWARM_REVIEWER || "yunganas-reviewer.testnet";
 const AGENT_OWNER = process.env.SWARM_AGENT_OWNER || "yunganas-agents.testnet";
 const NETWORK = process.env.NEAR_NETWORK || "testnet";
 const GAS = "100000000000000"; // 100 Tgas
+const POOL_GAS = "200000000000000"; // 200 Tgas for staking-pool calls
+const INFERENCE_COST = process.env.INFERENCE_COST_NEAR || "0.001"; // NEAR per inference call (estimate)
 
 async function near() {
   return connect({
@@ -24,13 +26,13 @@ async function near() {
   });
 }
 
-async function call(accountId, methodName, args = {}, depositNear = "0") {
+async function call(accountId, methodName, args = {}, depositNear = "0", gas = GAS) {
   const acct = await (await near()).account(accountId);
   const out = await acct.functionCall({
     contractId: CONTRACT,
     methodName,
     args,
-    gas: BigInt(GAS),
+    gas: BigInt(gas),
     attachedDeposit: BigInt(utils.format.parseNearAmount(depositNear)),
   });
   const ok = out.status && out.status.SuccessValue !== undefined;
@@ -103,6 +105,22 @@ async function cmdRun(jobIdArg) {
     reviews.push({ agent_id: s.agent_id, ...r });
   }
   await call(REVIEWER, "review", { job_id, reviews });
+
+  // 3. Self-funding: pay this job's inference from the treasury's staking rewards, if any.
+  const calls = done.length + fresh.submissions.length;
+  const cost = BigInt(utils.format.parseNearAmount(INFERENCE_COST)) * BigInt(calls);
+  try {
+    await call(REVIEWER, "sync_rewards", {}, "0", POOL_GAS);
+    const t = await view("get_treasury");
+    if (BigInt(t.budget_available) >= cost) {
+      await call(REVIEWER, "spend_inference_budget", { amount: cost.toString(), note: `job ${job_id}: ${calls} inference calls` });
+      console.log(`  inference ${fmt(cost)} NEAR paid from staking rewards (self-funded)`);
+    } else {
+      console.log(`  treasury rewards ${fmt(t.budget_available)} NEAR < ${fmt(cost)} NEAR needed; inference not self-funded this time`);
+    }
+  } catch (e) {
+    console.log(`  treasury skipped: ${e.message}`);
+  }
   console.log(`Reviewed. The client can now run: swarm approve ${job_id}`);
 }
 
@@ -124,15 +142,39 @@ async function cmdStatus(jobIdArg) {
   console.log(`  agent owner earnings: ${fmt(earned)} NEAR`);
 }
 
+async function cmdSponsor(amount = "1", who = CLIENT) {
+  await call(who, "sponsor_treasury", {}, amount, POOL_GAS);
+  await cmdTreasury();
+}
+
+async function cmdSync() {
+  await call(REVIEWER, "sync_rewards", {}, "0", POOL_GAS);
+  await cmdTreasury();
+}
+
+async function cmdTreasury() {
+  const t = await view("get_treasury");
+  console.log(`Treasury (pool ${t.pool ?? "not set"})
+  staked principal : ${fmt(t.principal)} NEAR (never spent)
+  rewards earned   : ${fmt(t.rewards_seen)} NEAR
+  inference spent  : ${fmt(t.budget_spent)} NEAR
+  budget available : ${fmt(t.budget_available)} NEAR
+  unbonding        : ${fmt(t.pending_unstake)} NEAR
+  paid to reviewer : ${fmt(t.paid_to_reviewer)} NEAR`);
+}
+
 const [cmd, ...args] = process.argv.slice(2);
-const cmds = { register: cmdRegister, post: cmdPost, run: cmdRun, approve: cmdApprove, status: cmdStatus };
+const cmds = { register: cmdRegister, post: cmdPost, run: cmdRun, approve: cmdApprove, status: cmdStatus, sponsor: cmdSponsor, sync: cmdSync, treasury: cmdTreasury };
 if (!cmds[cmd]) {
   console.log(`Swarm-for-Hire runner (contract ${CONTRACT})
   node swarm.mjs register                 register the agents in agents.json (0.1 NEAR each, from ${AGENT_OWNER})
   node swarm.mjs post "job" [NEAR] [hrs]  post a job as ${CLIENT}
   node swarm.mjs run <jobId>              swarm answers, AI reviewer scores and flags, on-chain
   node swarm.mjs approve <jobId>          client approves and the escrow pays out
-  node swarm.mjs status <jobId>           show scores, flags, reputation and earnings`);
+  node swarm.mjs status <jobId>           show scores, flags, reputation and earnings
+  node swarm.mjs sponsor [NEAR]           stake NEAR into the self-funding treasury (min 1)
+  node swarm.mjs sync                     record staking rewards earned so far
+  node swarm.mjs treasury                 show principal, rewards and inference paid from rewards`);
 } else {
   cmds[cmd](...args).catch((e) => {
     console.error("Error:", e.message);

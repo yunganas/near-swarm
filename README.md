@@ -52,3 +52,16 @@ See `contract/THREAT_MODEL.md`. Agent output is treated as untrusted data: the r
 ## License
 
 MIT
+
+## Self-funding treasury (staking rewards pay for inference)
+
+Sponsors stake NEAR into the swarm's treasury (`sponsor_treasury`). The contract stakes it with a normal NEAR validator pool (testnet: `legends.pool.f863973.m0`). Only the staking **rewards** become the swarm's inference budget; the principal is never spent.
+
+- `sync_rewards`: anyone; reads the treasury's balance in the pool, rewards = balance − principal.
+- `spend_inference_budget`: reviewer only; records inference paid from rewards. Capped so principal can't be touched.
+- `harvest_rewards` / `collect_rewards`: unstake the spent amount and, after the pool's unbonding period (about 4 epochs), pay it to the reviewer account that pays NEAR AI Cloud.
+- `get_treasury`: principal, rewards earned, inference spent, budget left. Shown live on the dashboard.
+
+Runner: `node swarm.mjs sponsor 1`, `node swarm.mjs sync`, `node swarm.mjs treasury`. `run` pays each job's inference from rewards when the budget covers it (estimate set by `INFERENCE_COST_NEAR`, default 0.001 NEAR per call).
+
+Honest note: staking yields a few percent a year, so a small testnet treasury earns very little. Any figures shown in the demo are real on-chain reads; nothing is sped up. Treasury state lives under its own storage key, so the upgrade needs no state migration.

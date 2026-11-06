@@ -21,6 +21,9 @@ use near_sdk::{
     Promise, PromiseError,
 };
 
+mod treasury;
+pub use treasury::TreasuryView;
+
 pub type JobId = u64;
 pub type AgentId = u64;
 
