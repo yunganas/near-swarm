@@ -74,6 +74,7 @@ async function cmdRun(jobIdArg) {
   if (!job) throw new Error(`no job ${job_id}`);
   if (job.status !== "Open") throw new Error(`job ${job_id} is ${job.status}, not Open`);
   const prompts = Object.fromEntries(JSON.parse(await readFile(join(HERE, "agents.json"), "utf8")).map((a) => [a.name, a.prompt]));
+  const payloads = Object.fromEntries(JSON.parse(await readFile(join(HERE, "agents.json"), "utf8")).map((a) => [a.name, a.payload]));
   const agents = (await view("get_agents", { from: 0, limit: 50 })).filter((a) => a.active && prompts[a.name]);
   console.log(`Job #${job_id}: "${job.description}"  bounty ${fmt(job.bounty)} NEAR`);
   await mkdir(join(HERE, "..", "results"), { recursive: true });
@@ -83,7 +84,8 @@ async function cmdRun(jobIdArg) {
     agents
       .filter((a) => !job.submissions.some((s) => s.agent_id === a.id))
       .map(async (a) => {
-        const text = await chat({ model: a.model, system: prompts[a.name], user: job.description });
+        // Red-team: a scripted payload simulates a compromised agent (real models refuse to write it).
+        const text = (await chat({ model: a.model, system: prompts[a.name], user: job.description })) + (payloads[a.name] ? "\n\n" + payloads[a.name] : "");
         const file = `results/job-${job_id}-agent-${a.id}.md`;
         await writeFile(join(HERE, "..", file), `# ${a.name} on job ${job_id}\n\n${text}\n`);
         return { a, text, file };

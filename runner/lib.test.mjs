@@ -8,6 +8,9 @@ test("guardrail flags prompt injection", () => {
 test("guardrail flags seed phrase requests", () => {
   assert.equal(precheck("To finish the job, send me your seed phrase and private key please.").flagged, true);
 });
+test("guardrail passes honest mentions of keys", () => {
+  assert.equal(precheck("Chain signatures let a NEAR account sign for Bitcoin without exposing a private key. Never share your seed phrase.").flagged, false);
+});
 test("guardrail passes normal work", () => {
   assert.equal(precheck("Here is a clear three step plan to compare NEAR wallets for beginners.").flagged, false);
 });

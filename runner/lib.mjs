@@ -9,7 +9,8 @@ const INJECTION = [
   /score\s*(of|=|:)\s*100/i,
   /you are now/i,
   /system prompt/i,
-  /(private|secret) key|seed phrase|mnemonic/i,
+  // Flag requests for secrets, not honest mentions ("never share your seed phrase" passes).
+  /(?<!\b(never|not|don't|dont|nobody should)\s+)\b(send|share|enter|paste|give|provide|reveal|type|dm)\s+(me\s+|us\s+)?(your|the)\s+(wallet'?s?\s+|12-word\s+|24-word\s+)?(private key|secret key|seed phrase|recovery phrase|mnemonic)/i,
 ];
 
 /** Deterministic guardrail run before the AI reviewer. */
