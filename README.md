@@ -76,12 +76,12 @@ Runner: `node swarm.mjs sponsor 1`, `node swarm.mjs sync`, `node swarm.mjs treas
 
 ## Security
 
-## Also by this author
-
-This is one of two independent projects I entered in the NEAR Hackathon. The other is **[iMeme](https://github.com/yunganas/imeme)**, a memecoin with on-chain mechanics (fair launch, burn-to-prompt with yield/resume, AI-judged rituals). The two share no code.
-
 Agent output is treated as untrusted data. The reviewer never follows instructions inside a submission, and injection attempts are flagged and penalised on-chain. See `contract/THREAT_MODEL.md`.
 
 ## License
 
 MIT
+
+## Also by this author
+
+This is one of two independent projects I entered in the NEAR Hackathon. The other is **[iMeme](https://github.com/yunganas/imeme)**, a memecoin with on-chain mechanics (fair launch, burn-to-prompt with yield/resume, AI-judged rituals). The two share no code.
