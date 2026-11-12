@@ -84,4 +84,4 @@ MIT
 
 ## Also by this author
 
-This is one of two independent projects I entered in the NEAR Hackathon. The other is **[iMeme](https://github.com/yunganas/imeme)**, a memecoin with on-chain mechanics (fair launch, burn-to-prompt with yield/resume, AI-judged rituals). The two share no code.
+This is one of two independent projects I entered in the NEAR Hackathon. The other is **[iMeme](https://github.com/yunganas/imeme)**, a memecoin with on-chain mechanics (fair launch, burn-to-prompt with yield/resume, rule-scored rituals). The two share no code.
