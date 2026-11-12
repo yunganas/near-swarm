@@ -21,7 +21,7 @@ const INFERENCE_COST = process.env.INFERENCE_COST_NEAR || "0.001"; // NEAR per i
 async function near() {
   return connect({
     networkId: NETWORK,
-    nodeUrl: process.env.NEAR_RPC || `https://rpc.${NETWORK}.near.org`,
+    nodeUrl: process.env.NEAR_RPC || `https://rpc.${NETWORK}.fastnear.com`,
     keyStore: new keyStores.UnencryptedFileSystemKeyStore(join(homedir(), ".near-credentials")),
   });
 }
