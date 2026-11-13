@@ -6,6 +6,7 @@ Built for the NEAR Hackathon 2026. Tracks: **AI Swarms** and **Agent Economy**.
 
 - Demo video: https://x.com/AkangbeAnas/status/2119434914168811546
 - Live dashboard (reads NEAR testnet): https://yunganas.github.io/near-swarm/web/
+  (Restyled Nov 13, 2026: look only, no logic or contract changes. The demo video shows the earlier style.)
 
 ## How it works
 
